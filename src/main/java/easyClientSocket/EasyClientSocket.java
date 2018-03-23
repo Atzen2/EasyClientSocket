@@ -36,29 +36,31 @@ public class EasyClientSocket {
 	}
 
 	
-	public EasyClientSocket(String address, int port) throws UnknownHostException, IOException {
+	
+	public EasyClientSocket(String address, int port, EasyClientSocketMessageReceiver receiver) throws UnknownHostException, IOException {
 		createSocket(address, port);
+		setReceiver(receiver);
 		createOutputStream();
 		createInputStream();
 		createReceiveThread();
 		setTransportAddresses();
 	}
-
 	
 	private void createSocket(String address, int port) throws UnknownHostException, IOException {
 		socket = new Socket(address, port);
 	}
-
+	
+	private void setReceiver(EasyClientSocketMessageReceiver receiver) {
+		this.receiver = receiver;
+	}
 	
 	private void createOutputStream() throws IOException {
 		outputStream = new PrintWriter(socket.getOutputStream(), true);
 	}
 	
-	
 	private void createInputStream() throws IOException {
 		inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
-	
 	
 	private void createReceiveThread() {
 		receiveThread = new Thread(new Runnable() {
@@ -82,16 +84,11 @@ public class EasyClientSocket {
 		receiveThread.start();
 	}
 
-	
 	private void setTransportAddresses(){
 		remoteTransportAddress = new TransportAddress(socket.getInetAddress().getHostAddress(), socket.getPort());
 		localTransportAddress = new TransportAddress(socket.getLocalAddress().getHostAddress(), socket.getLocalPort());
 	}
 	
-	
-	public void setReceiver(EasyClientSocketMessageReceiver receiver) {
-		this.receiver = receiver;
-	}
 	
 	
 	public void send(String message) {
@@ -99,14 +96,19 @@ public class EasyClientSocket {
 	}
 
 	
+	
 	public void close() throws IOException {
 		socket.close();
 		receiveThread.interrupt();
 	}
 	
+	
+	
 	public TransportAddress getRemoteAddress() {
 		return remoteTransportAddress;
 	}
+	
+	
 	
 	public TransportAddress getLocalAddress() {
 		return localTransportAddress;
